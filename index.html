@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <script>
+        // Fetch tasks from the server
+        function fetchTasks() {
+            fetch('/tasks')
+                .then(response => response.json())
+                .then(data => {
+                    let tasksList = document.getElementById('tasksList');
+                    tasksList.innerHTML = ''; // Clear the current list
+                    data.forEach(task => {
+                        let li = document.createElement('li');
+                        li.textContent = task;
+                        let deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.onclick = () => deleteTask(task);
+                        li.appendChild(deleteButton);
+                        tasksList.appendChild(li);
+                    });
+                });
+        }
+
+        // Add a new task
+        function addTask() {
+            let taskInput = document.getElementById('taskInput');
+            let task = taskInput.value.trim();
+            if (task) {
+                fetch('/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ task: task })
+                }).then(response => {
+                    if (response.ok) {
+                        taskInput.value = ''; // Clear the input
+                        fetchTasks(); // Refresh the task list
+                    }
+                });
+            }
+        }
+
+        // Delete a task
+        function deleteTask(task) {
+            fetch('/tasks', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task: task })
+            }).then(response => {
+                if (response.ok) {
+                    fetchTasks(); // Refresh the task list
+                }
+            });
+        }
+
+        // On page load, fetch and display tasks
+        window.onload = fetchTasks;
+    </script>
+</head>
+<body>
+    <h1>Task Manager</h1>
+
+    <!-- Input for new task -->
+    <input type="text" id="taskInput" placeholder="Enter a new task">
+    <button onclick="addTask()">Add Task</button>
+
+    <h2>Tasks:</h2>
+    <ul id="tasksList"></ul>
+</body>
+</html>
